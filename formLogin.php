@@ -13,8 +13,6 @@ session_destroy();
 
 ?>
 
-
-
 <style type="text/css">
 
 *{
