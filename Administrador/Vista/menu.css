@@ -1,0 +1,43 @@
+/* 
+    Document   : menu
+    Created on : 10/12/2014, 09:10:36 PM
+    Author     : Alex
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+    display: block;
+}
+
+#DivMenu {
+	position: absolute;
+top: 300px;
+left: 50%;
+margin-top: -320px;
+margin-left: -400px;
+
+}
+
+#DivTitulos {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 25px;
+	font-style: normal;
+	line-height: normal;
+	color: #fff;
+	background-color: #1C4583;
+	text-align: center;
+        position: relative;
+top: 100px;
+
+}
+
+#DivCuerpo {
+	position: relative;
+top: 140px;
+left: 100px;
+
+width: 83%;
+}
+
+.statictitulo {position: fixed; z-index: 3;width:100%;}
