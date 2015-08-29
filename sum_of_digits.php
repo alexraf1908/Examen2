@@ -19,6 +19,7 @@ $desde =$desde+1;
 
 $suma = $suma+$i;
 
+
 } 
 } 
 echo 'la suma es: '.$suma;
