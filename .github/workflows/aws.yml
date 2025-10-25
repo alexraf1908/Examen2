@@ -25,7 +25,7 @@ jobs:
         
           # Transferir solo la carpeta 'build' de React
           src: './frontend/build/'
-          dest: ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/prod/frontend/build/
+          dest: ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/profarm/front/build/
           
           # Opciones de rsync para transferencias
           options: -avz --delete --exclude 'node_modules'
