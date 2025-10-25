@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+    workflow_dispatch:
+    
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,16 +21,15 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           
       # 3. Transferir solo el ejecutable de Go y la carpeta 'build' de React
-      - name: Sincronizar archivos a EC2 con rsync
-        uses: burnettk/rsync-action@v5
+      - name: Sincronizar archivos con rsync
+        uses: up9cloud/action-rsync@v1.4
         with:
-        
-          # Transferir solo la carpeta 'build' de React
-          src: './frontend/build/'
-          dest: ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/profarm/front/build/
-          
-          # Opciones de rsync para transferencias
-          options: -avz --delete --exclude 'node_modules'
+          switches: -avzr --delete
+          path: ./frontend/build/
+          remote_path: /home/ubuntu/profarm/front/build/
+          remote_host: ${{ secrets.EC2_HOST }}
+          remote_user: ${{ secrets.EC2_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
           
         # ====================================
       # 4. REINICIO DE SERVICIOS
