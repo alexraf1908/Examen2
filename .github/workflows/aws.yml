@@ -11,28 +11,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Descargar el código fuente
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      # 1️⃣ Configurar SSH
-      - name: Configurar SSH para rsync
+      # 2️⃣ Configurar SSH para conectar con EC2
+      - name: Configurar SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 2️⃣ Sincronizar archivos con rsync directamente
-      - name: Sincronizar archivos a EC2 con rsync
-        run: |
-          rsync -avzr --delete -e "ssh -o StrictHostKeyChecking=no" \
-            ./frontend/build/ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/profarm/front/build/
-
-      # 3️⃣ Reiniciar servicios en EC2
-      - name: Reiniciar servicios PM2 en EC2
+      # 3️⃣ Asegurar que EC2 tiene rsync, git, y pm2 accesible en PATH
+      - name: Preparar servidor remoto
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            pm2 restart 0
+            echo "✅ Preparando entorno remoto..."
+            sudo apt update -y
+            sudo apt install -y rsync curl git
+            # Asegurar que pm2 está en el PATH global
+            echo 'export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.0/bin' | sudo tee -a /etc/profile
+            source /etc/profile
+            echo "✅ Servidor listo."
+
+      # 4️⃣ Sincronizar solo los binarios del build al servidor
+      - name: Sincronizar archivos del build a EC2
+        run: |
+          echo "🚀 Enviando archivos al servidor..."
+          rsync -avzr --delete -e "ssh -o StrictHostKeyChecking=no" \
+            ./frontend/build/ \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/profarm/front/build/
+          echo "✅ Archivos sincronizados correctamente."
+
+      # 5️⃣ Reiniciar la aplicación con PM2
+      - name: Reiniciar aplicación con PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.0/bin
+            echo "♻️ Reiniciando aplicación PM2..."
+            pm2 restart 0 || pm2 restart all
+            pm2 list
+            echo "✅ Despliegue completado exitosamente."
