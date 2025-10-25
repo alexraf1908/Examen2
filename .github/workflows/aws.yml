@@ -1,44 +1,37 @@
 name: Despliegue de Producción (Solo Binarios/Build)
+
 on:
   push:
     branches:
       - master
-    workflow_dispatch:
-    
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
-     
-      # ====================================
-      # 2. DESPLIEGUE (TRANSFERENCIA SSH)
-      # ====================================
+
+      # 1️⃣ Configurar SSH
       - name: Configurar SSH para rsync
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
-      # 3. Transferir solo el ejecutable de Go y la carpeta 'build' de React
-      - name: Sincronizar archivos con rsync
-        uses: up9cloud/action-rsync@v1.4
-        with:
-          switches: -avzr --delete
-          path: ./frontend/build/
-          remote_path: /home/ubuntu/profarm/front/build/
-          remote_host: ${{ secrets.EC2_HOST }}
-          remote_user: ${{ secrets.EC2_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
-        # ====================================
-      # 4. REINICIO DE SERVICIOS
-      # ====================================
+
+      # 2️⃣ Sincronizar archivos con rsync directamente
+      - name: Sincronizar archivos a EC2 con rsync
+        run: |
+          rsync -avzr --delete -e "ssh -o StrictHostKeyChecking=no" \
+            ./frontend/build/ \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/profarm/front/build/
+
+      # 3️⃣ Reiniciar servicios en EC2
       - name: Reiniciar servicios PM2 en EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           script: |
-
             pm2 restart 0
