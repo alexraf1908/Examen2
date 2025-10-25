@@ -21,22 +21,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 3️⃣ Asegurar que EC2 tiene rsync, git, y pm2 accesible en PATH
-      - name: Preparar servidor remoto
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "✅ Preparando entorno remoto..."
-            sudo apt update -y
-            sudo apt install -y rsync curl git
-            # Asegurar que pm2 está en el PATH global
-            echo 'export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.0/bin' | sudo tee -a /etc/profile
-            source /etc/profile
-            echo "✅ Servidor listo."
-
       # 4️⃣ Sincronizar solo los binarios del build al servidor
       - name: Sincronizar archivos del build a EC2
         run: |
